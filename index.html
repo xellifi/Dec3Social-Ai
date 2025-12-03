@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="AutoSocial AI - Facebook Automation Platform" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AutoSocial" />
+    
+    <title>AutoSocial AI</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/6366f1/ffffff.png?text=AS" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              background: 'var(--bg-background)',
+              surface: 'var(--bg-surface)',
+              primary: '#6366f1',
+              secondary: '#a855f7',
+              accent: '#ec4899',
+              // Override utilities to adapt to light mode
+              white: 'var(--text-main)',
+              'true-white': '#ffffff', // For buttons that need actual white text
+              slate: {
+                950: 'var(--bg-input-deep)',
+                900: 'var(--bg-input)',
+                800: 'var(--bg-element)',
+                700: 'var(--border-color)',
+                600: 'var(--border-hover)',
+                500: 'var(--text-muted-hover)',
+                400: 'var(--text-muted)',
+                300: 'var(--text-dim)',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      
+      :root {
+        /* Dark Mode (Default) */
+        --bg-background: #0f172a;
+        --bg-surface: #1e293b;
+        
+        --bg-input-deep: #020617; /* slate-950 */
+        --bg-input: #0f172a;      /* slate-900 */
+        --bg-element: #1e293b;    /* slate-800 */
+        
+        --border-color: #334155;  /* slate-700 */
+        --border-hover: #475569;  /* slate-600 */
+        
+        --text-main: #ffffff;
+        --text-muted: #94a3b8;    /* slate-400 */
+        --text-muted-hover: #64748b; /* slate-500 */
+        --text-dim: #cbd5e1;      /* slate-300 */
+      }
+
+      .light-mode {
+        /* Light Mode - Enhanced for eye comfort */
+        --bg-background: #f8fafc; 
+        --bg-surface: #ffffff;    
+        
+        --bg-input-deep: #f1f5f9; 
+        --bg-input: #ffffff;      
+        --bg-element: #f1f5f9;    
+        
+        /* Darker borders as requested (Slate 500/600 instead of 400/500) */
+        --border-color: #64748b;  /* slate-500 */
+        --border-hover: #475569;  /* slate-600 */
+        
+        --text-main: #1e293b;     /* slate-800 */
+        --text-muted: #64748b;    /* slate-500 */
+        --text-muted-hover: #475569; /* slate-600 */
+        --text-dim: #475569;      /* slate-600 */
+      }
+
+      /* Disable shadows in light mode */
+      .light-mode [class*="shadow-"] {
+        box-shadow: none !important;
+      }
+
+      body {
+        background-color: var(--bg-background);
+        color: var(--text-main);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--bg-surface); 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-color); 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--border-hover); 
+      }
+      
+      /* PWA Safe Area for mobile */
+      .pb-safe {
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js')
+            .then((registration) => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch((err) => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+    </script>
+  </body>
+</html>
