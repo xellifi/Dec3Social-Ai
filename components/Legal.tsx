@@ -26,7 +26,7 @@ export const Legal: React.FC = () => {
         <div className="bg-surface border border-slate-700 rounded-2xl p-8 space-y-4 text-slate-300 leading-relaxed">
           <h3 className="text-xl font-semibold text-white">1. Acceptance</h3>
           <p>
-            By accessing and using AutoSocial AI, you accept and agree to be bound by the terms and provision of this agreement.
+            By accessing and using Mychat Vibes Pilot, you accept and agree to be bound by the terms and provision of this agreement.
           </p>
           <h3 className="text-xl font-semibold text-white mt-4">2. Usage</h3>
           <p>

@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { ConnectedPage, ScheduledPost } from '../types';
-import { Facebook, Bot, BrainCircuit, Trash2, MessageSquareText, Book, Instagram, CheckCircle, Unplug, User, AlertTriangle, Layers, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import { Facebook, Bot, BrainCircuit, Trash2, MessageSquareText, Book, Instagram, CheckCircle, Unplug, User, AlertTriangle, Layers, Clock, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 import { Modal } from './Modal';
 
 // Curve calculation helpers
@@ -339,13 +340,65 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, setPages, scheduled
     }
   };
 
+  // --- Posts Stats Data (Bar Chart) ---
+  const getPostStatsData = (range: string) => {
+    // Generate mock data consistent with the time range logic
+    switch(range) {
+      case '1m':
+        return [
+          { label: 'Week 1', published: 12, queued: 5 },
+          { label: 'Week 2', published: 8, queued: 8 },
+          { label: 'Week 3', published: 15, queued: 4 },
+          { label: 'Week 4', published: 10, queued: 6 },
+        ];
+      case '3m':
+        // Mocking 12 weeks
+        return Array.from({length: 12}, (_, i) => ({
+          label: `W${i+1}`,
+          published: Math.floor(Math.random() * 20) + 5,
+          queued: Math.floor(Math.random() * 10) + 2
+        }));
+      case '6m':
+        return ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => ({
+          label: m,
+          published: Math.floor(Math.random() * 50) + 20,
+          queued: Math.floor(Math.random() * 30) + 10
+        }));
+      case '1y':
+         return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map(m => ({
+          label: m,
+          published: Math.floor(Math.random() * 40) + 15,
+          queued: Math.floor(Math.random() * 20) + 5
+        }));
+      case 'all':
+        return ['2020', '2021', '2022', '2023'].map(y => ({
+          label: y,
+          published: Math.floor(Math.random() * 200) + 100,
+          queued: Math.floor(Math.random() * 100) + 20
+        }));
+      case '7d':
+      default:
+        return [
+          { label: 'Mon', published: 4, queued: 2 },
+          { label: 'Tue', published: 3, queued: 5 },
+          { label: 'Wed', published: 5, queued: 1 },
+          { label: 'Thu', published: 2, queued: 6 },
+          { label: 'Fri', published: 6, queued: 3 },
+          { label: 'Sat', published: 8, queued: 4 },
+          { label: 'Sun', published: 5, queued: 0 },
+        ];
+    }
+  };
+
   const chartData = getChartData(timeRange);
+  const postStatsData = getPostStatsData(timeRange);
 
   const totalIncoming = chartData.reduce((acc, curr) => acc + curr.incoming, 0);
   const totalSent = chartData.reduce((acc, curr) => acc + curr.sent, 0);
+  const totalPublished = postStatsData.reduce((acc, curr) => acc + curr.published, 0);
+  const totalQueued = postStatsData.reduce((acc, curr) => acc + curr.queued, 0);
 
   // Normalization for the chart SVG (0-100 scale)
-  // Determine max value from data to scale Y axis properly
   const maxDataValue = Math.max(...chartData.flatMap(d => [d.incoming, d.sent]));
   const maxVal = maxDataValue > 0 ? maxDataValue * 1.1 : 100; // Add 10% padding
   
@@ -364,6 +417,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, setPages, scheduled
   const pathIncoming = getSvgPath(incomingDataPoints);
   const pathSent = getSvgPath(sentDataPoints);
 
+  // Bar Chart Helpers
+  const maxPostValue = Math.max(...postStatsData.flatMap(d => [d.published, d.queued])) * 1.2 || 10;
+  
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Notification Toast */}
@@ -535,16 +591,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, setPages, scheduled
                  strokeLinejoin="round"
                  vectorEffect="non-scaling-stroke"
               />
-
-              {/* Data Points - Incoming (Solid, Smaller r=2) */}
-              {incomingDataPoints.map((p, i) => (
-                   <circle key={`in-${i}`} cx={p[0]} cy={p[1]} r="2" fill="#4ade80" stroke="#fff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" className="transition-all hover:r-4 cursor-pointer shadow-sm" />
-              ))}
-              
-               {/* Data Points - Sent (Solid, Smaller r=2) */}
-               {sentDataPoints.map((p, i) => (
-                   <circle key={`out-${i}`} cx={p[0]} cy={p[1]} r="2" fill="#fb923c" stroke="#fff" strokeWidth="1.5" vectorEffect="non-scaling-stroke" className="transition-all hover:r-4 cursor-pointer shadow-sm" />
-              ))}
            </svg>
         </div>
         
@@ -556,6 +602,70 @@ export const Dashboard: React.FC<DashboardProps> = ({ pages, setPages, scheduled
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Content Strategy - Published vs Queued Bar Chart */}
+      <div className="bg-surface border border-slate-700 p-6 sm:p-8 rounded-2xl shadow-lg relative overflow-hidden">
+         <div className="flex flex-col gap-6 mb-6 relative z-10">
+           {/* Top Row: Title */}
+           <div className="flex justify-between items-end">
+              <div>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                   <Layers size={24} className="text-purple-500" /> Content Strategy
+                </h3>
+                <p className="text-slate-400 text-sm mt-1 font-medium">Published vs Queued posts</p>
+              </div>
+              
+              {/* Legend */}
+              <div className="flex items-center gap-6 text-xs sm:text-sm font-medium">
+                 <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-sm bg-purple-500"></span>
+                    <span className="text-slate-300">Published <span className="text-white font-bold ml-1">{totalPublished}</span></span>
+                 </div>
+                 <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-sm bg-amber-500"></span>
+                    <span className="text-slate-300">Queued <span className="text-white font-bold ml-1">{totalQueued}</span></span>
+                 </div>
+              </div>
+           </div>
+         </div>
+
+         {/* Bar Chart Container */}
+         <div className="bg-slate-900/30 rounded-2xl border border-slate-700/50 p-6 w-full h-64 relative z-10">
+            <div className="w-full h-full flex items-end justify-between gap-2">
+              {postStatsData.map((data, index) => {
+                const pubHeight = (data.published / maxPostValue) * 100;
+                const queueHeight = (data.queued / maxPostValue) * 100;
+                
+                return (
+                  <div key={index} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group min-w-0">
+                     <div className="w-full max-w-[40px] flex gap-1 items-end h-full">
+                        {/* Published Bar */}
+                        <div 
+                           className="flex-1 bg-purple-500 rounded-t-sm hover:bg-purple-400 transition-all relative group/bar"
+                           style={{ height: `${Math.max(pubHeight, 2)}%` }}
+                        >
+                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover/bar:opacity-100 whitespace-nowrap z-20 pointer-events-none transition-opacity">
+                              {data.published}
+                           </div>
+                        </div>
+                        
+                        {/* Queued Bar */}
+                        <div 
+                           className="flex-1 bg-amber-500 rounded-t-sm hover:bg-amber-400 transition-all relative group/bar"
+                           style={{ height: `${Math.max(queueHeight, 2)}%` }}
+                        >
+                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-slate-800 text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover/bar:opacity-100 whitespace-nowrap z-20 pointer-events-none transition-opacity">
+                              {data.queued}
+                           </div>
+                        </div>
+                     </div>
+                     <span className="text-[10px] sm:text-xs text-slate-400 font-medium truncate w-full text-center">{data.label}</span>
+                  </div>
+                );
+              })}
+            </div>
+         </div>
       </div>
 
       {/* Main Facebook Profile Connection */}

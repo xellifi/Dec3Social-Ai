@@ -1,6 +1,6 @@
 {
-  "name": "AutoSocial AI",
-  "short_name": "AutoSocial",
+  "name": "Mychat Vibes Pilot",
+  "short_name": "Mychat Vibes",
   "description": "A comprehensive Facebook automation platform featuring AI-driven replies.",
   "start_url": "./index.html",
   "display": "standalone",
@@ -9,12 +9,12 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://placehold.co/192x192/6366f1/ffffff.png?text=AS",
+      "src": "https://placehold.co/192x192/6366f1/ffffff.png?text=MVP",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://placehold.co/512x512/6366f1/ffffff.png?text=AS",
+      "src": "https://placehold.co/512x512/6366f1/ffffff.png?text=MVP",
       "sizes": "512x512",
       "type": "image/png"
     }

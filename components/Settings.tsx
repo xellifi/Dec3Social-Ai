@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { AppSettings } from '../types';
-import { Save, Facebook, Mail, Server, Shield, CheckCircle, AlertCircle, Info, Send, Download, Upload, Database, FileJson } from 'lucide-react';
+import { Save, Facebook, Mail, Server, Shield, CheckCircle, AlertCircle, Info, Send, Globe, Copy, CircleHelp, Link as LinkIcon } from 'lucide-react';
 import { Modal } from './Modal';
 
 export const Settings: React.FC = () => {
@@ -21,10 +22,28 @@ export const Settings: React.FC = () => {
   const [testEmail, setTestEmail] = useState('');
   const [isSendingTest, setIsSendingTest] = useState(false);
 
-  // File Input Ref
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Facebook Guide State
+  const [isFbGuideOpen, setIsFbGuideOpen] = useState(false);
+
+  // Dynamic URLs
+  const [currentUrls, setCurrentUrls] = useState({
+    redirectUri: '',
+    domain: '',
+    siteUrl: ''
+  });
 
   useEffect(() => {
+    // Calculate dynamic URLs based on current environment
+    const fullUrl = window.location.href.split('?')[0]; // Remove query params
+    const hostname = window.location.hostname;
+    const origin = window.location.origin; // Protocol + Hostname + Port
+
+    setCurrentUrls({
+      redirectUri: fullUrl,
+      domain: hostname,
+      siteUrl: origin + '/'
+    });
+
     const stored = localStorage.getItem('app_settings');
     if (stored) {
       try {
@@ -47,6 +66,11 @@ export const Settings: React.FC = () => {
 
   const handleChange = (key: keyof AppSettings, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setNotification({ message: `${label} copied to clipboard!`, type: 'success' });
   };
 
   // Save only Facebook credentials
@@ -102,75 +126,6 @@ export const Settings: React.FC = () => {
     setIsTestModalOpen(false);
     setNotification({ message: `Test email sent successfully to ${testEmail}`, type: 'success' });
     setTestEmail('');
-  };
-
-  const handleBackup = () => {
-    try {
-      const backupData = {
-        timestamp: new Date().toISOString(),
-        version: '1.0.0',
-        data: {
-          pages: localStorage.getItem('autosocial_pages'),
-          posts: localStorage.getItem('autosocial_posts'),
-          settings: localStorage.getItem('app_settings'),
-          apiConfigs: localStorage.getItem('api_configs'),
-          theme: localStorage.getItem('theme')
-        }
-      };
-
-      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `autosocial-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      setNotification({ message: 'Backup file downloaded successfully', type: 'success' });
-    } catch (error) {
-      console.error('Backup failed:', error);
-      setNotification({ message: 'Failed to create backup', type: 'error' });
-    }
-  };
-
-  const handleRestore = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
-        const parsed = JSON.parse(content);
-
-        if (!parsed.data) {
-           throw new Error('Invalid backup format');
-        }
-
-        // Restore items
-        if (parsed.data.pages) localStorage.setItem('autosocial_pages', parsed.data.pages);
-        if (parsed.data.posts) localStorage.setItem('autosocial_posts', parsed.data.posts);
-        if (parsed.data.settings) localStorage.setItem('app_settings', parsed.data.settings);
-        if (parsed.data.apiConfigs) localStorage.setItem('api_configs', parsed.data.apiConfigs);
-        if (parsed.data.theme) localStorage.setItem('theme', parsed.data.theme);
-
-        setNotification({ message: 'System restored successfully! Reloading...', type: 'success' });
-        
-        // Reload after short delay
-        setTimeout(() => {
-           window.location.reload();
-        }, 1500);
-
-      } catch (error) {
-        console.error('Restore failed:', error);
-        setNotification({ message: 'Invalid backup file. Please check the file and try again.', type: 'error' });
-      }
-    };
-    reader.readAsText(file);
-    // Reset input
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const isFbConnected = settings.fbAppId && settings.fbAppSecret;
@@ -241,12 +196,91 @@ export const Settings: React.FC = () => {
                </div>
              </div>
            </div>
+
+           {/* URL Configuration Helper */}
+           <div className="mt-6 bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden">
+             <div className="px-4 py-3 border-b border-slate-700/50 flex items-center justify-between bg-slate-800/30">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                   <Globe size={16} className="text-blue-400"/>
+                   App Configuration URLs
+                </h4>
+                <button 
+                  onClick={() => setIsFbGuideOpen(true)}
+                  className="text-xs flex items-center gap-1 text-primary hover:text-indigo-400 transition-colors"
+                >
+                   <CircleHelp size={14} /> How to configure?
+                </button>
+             </div>
+             <div className="p-4 space-y-4">
+                {/* Valid OAuth Redirect URI */}
+                <div>
+                   <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Valid OAuth Redirect URI</label>
+                   <div className="flex gap-2">
+                      <div className="relative flex-1 group">
+                         <input 
+                           type="text" 
+                           readOnly 
+                           value={currentUrls.redirectUri}
+                           className="w-full bg-slate-950 border border-slate-800 rounded-lg py-2 pl-3 pr-10 text-xs text-slate-300 font-mono outline-none"
+                         />
+                         <LinkIcon size={12} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600"/>
+                      </div>
+                      <button 
+                        onClick={() => handleCopy(currentUrls.redirectUri, 'Redirect URI')}
+                        className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 rounded-lg flex items-center justify-center transition-colors"
+                        title="Copy"
+                      >
+                         <Copy size={14} />
+                      </button>
+                   </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {/* App Domain */}
+                   <div>
+                     <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">App Domain</label>
+                     <div className="flex gap-2">
+                        <input 
+                           type="text" 
+                           readOnly 
+                           value={currentUrls.domain}
+                           className="flex-1 bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 font-mono outline-none"
+                        />
+                        <button 
+                           onClick={() => handleCopy(currentUrls.domain, 'App Domain')}
+                           className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 rounded-lg flex items-center justify-center transition-colors"
+                        >
+                           <Copy size={14} />
+                        </button>
+                     </div>
+                   </div>
+                   {/* Site URL */}
+                   <div>
+                     <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Site URL (Platform)</label>
+                     <div className="flex gap-2">
+                        <input 
+                           type="text" 
+                           readOnly 
+                           value={currentUrls.siteUrl}
+                           className="flex-1 bg-slate-950 border border-slate-800 rounded-lg py-2 px-3 text-xs text-slate-300 font-mono outline-none"
+                        />
+                        <button 
+                           onClick={() => handleCopy(currentUrls.siteUrl, 'Site URL')}
+                           className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 px-3 rounded-lg flex items-center justify-center transition-colors"
+                        >
+                           <Copy size={14} />
+                        </button>
+                     </div>
+                   </div>
+                </div>
+             </div>
+           </div>
            
            <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mt-8 pt-6 border-t ${isFbConnected ? 'border-green-500/20' : 'border-slate-700/50'}`}>
                <div className="flex items-start gap-2 text-slate-500 max-w-md flex-1">
                  <Info size={16} className="mt-0.5 shrink-0" />
                  <p className="text-xs leading-relaxed">
-                   Find these credentials in your Facebook Developers Dashboard under Settings &gt; Basic.
+                   Copy the URLs above and paste them into your Facebook App Settings to enable connection.
                  </p>
                </div>
                <button 
@@ -345,67 +379,6 @@ export const Settings: React.FC = () => {
         </div>
       </div>
 
-      {/* Data Backup & Recovery */}
-      <div className="bg-surface border border-slate-700 rounded-2xl overflow-hidden">
-         <div className="p-6 border-b border-slate-700/50 flex items-center gap-3">
-            <div className="p-2 bg-purple-600/20 text-purple-500 rounded-lg">
-               <Database size={20} />
-            </div>
-            <div>
-               <h3 className="text-lg font-bold text-white">Data Backup & Recovery</h3>
-               <p className="text-xs text-slate-400">Export your configuration to keep it safe or transfer to another device.</p>
-            </div>
-         </div>
-         <div className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-               {/* Backup */}
-               <div className="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl p-5 hover:border-slate-600 transition-colors">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="p-2 bg-slate-800 rounded-lg text-slate-300">
-                        <FileJson size={20}/>
-                     </div>
-                     <h4 className="font-medium text-white">Export Data</h4>
-                  </div>
-                  <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                     Download a JSON file containing all your pages, scheduled posts, API keys, and settings. Save this file to your secure drive.
-                  </p>
-                  <button 
-                     onClick={handleBackup}
-                     className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-true-white py-2.5 rounded-lg text-sm font-medium transition-colors border border-slate-600"
-                  >
-                     <Download size={16} /> Download Backup
-                  </button>
-               </div>
-
-               {/* Restore */}
-               <div className="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl p-5 hover:border-slate-600 transition-colors">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="p-2 bg-slate-800 rounded-lg text-slate-300">
-                        <Upload size={20}/>
-                     </div>
-                     <h4 className="font-medium text-white">Restore Data</h4>
-                  </div>
-                  <p className="text-xs text-slate-500 mb-4 leading-relaxed">
-                     Upload a previously exported JSON backup file to restore your configuration. This will overwrite current settings.
-                  </p>
-                  <button 
-                     onClick={() => fileInputRef.current?.click()}
-                     className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-true-white py-2.5 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-purple-500/20"
-                  >
-                     <Upload size={16} /> Upload & Restore
-                  </button>
-                  <input 
-                     type="file" 
-                     ref={fileInputRef}
-                     onChange={handleRestore}
-                     accept=".json"
-                     className="hidden"
-                  />
-               </div>
-            </div>
-         </div>
-      </div>
-
       {/* Test Email Modal */}
       <Modal isOpen={isTestModalOpen} onClose={() => setIsTestModalOpen(false)} title="Test SMTP Connection" size="sm">
           <div className="space-y-4">
@@ -453,6 +426,70 @@ export const Settings: React.FC = () => {
                   </button>
               </div>
           </div>
+      </Modal>
+
+      {/* Facebook Configuration Guide Modal */}
+      <Modal isOpen={isFbGuideOpen} onClose={() => setIsFbGuideOpen(false)} title="Facebook App Configuration" size="md">
+         <div className="space-y-6">
+            <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+               <p className="text-sm text-slate-300 leading-relaxed">
+                  To enable the "Connect with Facebook" feature, you must configure the following settings in the <a href="https://developers.facebook.com/apps" target="_blank" rel="noreferrer" className="text-primary hover:underline">Meta for Developers Dashboard</a>.
+               </p>
+            </div>
+
+            <div className="space-y-4">
+               {/* Step 1 */}
+               <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold shrink-0">1</div>
+                  <div>
+                     <h4 className="text-white font-medium">Add Platform</h4>
+                     <p className="text-xs text-slate-400 mt-1">
+                        Go to <strong>Settings &gt; Basic</strong>. Click "Add Platform" at the bottom and select "Website". Paste the <strong>Site URL</strong> provided in the main settings screen.
+                     </p>
+                  </div>
+               </div>
+               
+               {/* Step 2 */}
+               <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold shrink-0">2</div>
+                  <div>
+                     <h4 className="text-white font-medium">Configure App Domain</h4>
+                     <p className="text-xs text-slate-400 mt-1">
+                        In <strong>Settings &gt; Basic</strong>, locate the "App Domains" field and paste the <strong>App Domain</strong> provided.
+                     </p>
+                  </div>
+               </div>
+
+               {/* Step 3 */}
+               <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold shrink-0">3</div>
+                  <div>
+                     <h4 className="text-white font-medium">Valid OAuth Redirect URI</h4>
+                     <p className="text-xs text-slate-400 mt-1">
+                        In the sidebar, find <strong>Facebook Login &gt; Settings</strong>. Locate "Valid OAuth Redirect URIs" and paste the <strong>Redirect URI</strong> provided.
+                     </p>
+                  </div>
+               </div>
+               
+               {/* Step 4 */}
+               <div className="flex gap-4">
+                  <div className="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center font-bold shrink-0">4</div>
+                  <div>
+                     <h4 className="text-white font-medium">Save Changes</h4>
+                     <p className="text-xs text-slate-400 mt-1">
+                        Click "Save Changes" at the bottom of the Facebook dashboard. Then return here and enter your App ID and Secret.
+                     </p>
+                  </div>
+               </div>
+            </div>
+
+            <button 
+               onClick={() => setIsFbGuideOpen(false)}
+               className="w-full bg-primary hover:bg-indigo-600 text-true-white py-3 rounded-xl font-medium transition-colors"
+            >
+               Got it, thanks!
+            </button>
+         </div>
       </Modal>
     </div>
   );

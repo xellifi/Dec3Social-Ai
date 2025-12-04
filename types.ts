@@ -8,6 +8,7 @@ export enum View {
   SETTINGS = 'SETTINGS',
   GUIDE = 'GUIDE',
   LEGAL = 'LEGAL',
+  FLOWS = 'FLOWS',
 }
 
 export interface ConnectedPage {

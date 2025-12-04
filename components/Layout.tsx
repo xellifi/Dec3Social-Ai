@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { View } from '../types';
-import { LayoutDashboard, Activity as ActivityIcon, Send, Key, FileText, Settings, Bell, Sun, Moon, User, Mail, CheckCircle, AlertCircle, Save, Camera, Lock, Phone, Globe, ChevronDown, X, Search } from 'lucide-react';
+import { LayoutDashboard, Activity as ActivityIcon, Send, Key, FileText, Settings, Bell, Sun, Moon, User, Mail, CheckCircle, AlertCircle, Save, Camera, Lock, Phone, Globe, ChevronDown, X, Search, Workflow } from 'lucide-react';
 import { Modal } from './Modal';
 
 interface LayoutProps {
@@ -26,7 +27,7 @@ export const Layout: React.FC<LayoutProps> = ({ currentView, setCurrentView, chi
   const [profileData, setProfileData] = useState({
     name: 'Admin User',
     username: 'admin_sys',
-    email: 'admin@autosocial.ai',
+    email: 'admin@mychatvibes.com',
     password: '',
     mobile: '555-0123',
     countryCode: '+1',
@@ -79,6 +80,7 @@ export const Layout: React.FC<LayoutProps> = ({ currentView, setCurrentView, chi
 
   const navItems = [
     { id: View.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
+    { id: View.FLOWS, label: 'Flows', icon: Workflow },
     { id: View.ACTIVITY, label: 'Activity', icon: ActivityIcon },
     { id: View.POSTER, label: 'Poster', icon: Send },
     { id: View.API_MANAGER, label: 'API Keys', icon: Key },
@@ -166,8 +168,8 @@ export const Layout: React.FC<LayoutProps> = ({ currentView, setCurrentView, chi
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex w-64 bg-background border-r border-slate-700 flex-col h-full shrink-0 z-20">
         <div className="p-6 h-16 flex items-center">
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-            <span className="text-primary">Auto</span>Social
+          <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2 truncate">
+            <span className="text-primary">Mychat</span> Vibes Pilot
           </h1>
         </div>
         <nav className="flex-1 px-4 space-y-2 overflow-y-auto py-6">
@@ -209,7 +211,7 @@ export const Layout: React.FC<LayoutProps> = ({ currentView, setCurrentView, chi
             {/* Left Side: Title or Mobile Brand */}
             <div className="flex items-center gap-3">
                 <div className="md:hidden font-bold text-lg text-white flex items-center gap-1">
-                    <span className="text-primary">Auto</span>Social
+                    <span className="text-primary">Mychat</span> Vibes Pilot
                 </div>
                 <div className="hidden md:block text-lg font-semibold text-slate-200">
                     {formatTitle(currentView)}

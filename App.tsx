@@ -9,6 +9,7 @@ import { ApiManager } from './components/ApiManager';
 import { Settings } from './components/Settings';
 import { Guide } from './components/Guide';
 import { Legal } from './components/Legal';
+import { Flows } from './components/Flows';
 import { View, ConnectedPage, ScheduledPost, ApiConfig } from './types';
 
 // Mock Initial Data
@@ -234,6 +235,8 @@ const App: React.FC = () => {
             onNavigateToApiManager={() => setCurrentView(View.API_MANAGER)}
           />
         );
+      case View.FLOWS:
+        return <Flows />;
       case View.ACTIVITY:
         return <Activity pages={pages} />;
       case View.POSTER:
